@@ -9,7 +9,5 @@ set(CMAKE_CXX_STANDARD 20)
 find_package(CUDAToolkit)
 
 add_subdirectory(3rd)
-
-add_library(tegra_infer SHARED library.cpp)
-
+add_subdirectory(src)
 add_subdirectory(tools)

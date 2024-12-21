@@ -1,3 +1,6 @@
 [submodule "3rd/utils"]
 	path = 3rd/utils
 	url = https://github.com/dusty-nv/jetson-utils.git
+[submodule "3rd/glog"]
+	path = 3rd/glog
+	url = https://github.com/google/glog.git

@@ -61,3 +61,11 @@ add_executable(camera-viewer
         "${UTILS_DIR}/camera/camera-viewer/camera-viewer.cpp"
 )
 target_link_libraries(camera-viewer PRIVATE jetson-utils)
+
+set(TMP_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
+set(BUILD_SHARED_LIBS OFF)
+set(BUILD_EXAMPLES OFF)
+set(WITH_GFLAGS OFF)
+set(WITH_TLS OFF)
+add_subdirectory(glog)
+set(BUILD_SHARED_LIBS ${TMP_BUILD_SHARED_LIBS})

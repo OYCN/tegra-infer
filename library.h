@@ -1,6 +1,0 @@
-#ifndef TEGRA_INFER_LIBRARY_H
-#define TEGRA_INFER_LIBRARY_H
-
-void hello();
-
-#endif //TEGRA_INFER_LIBRARY_H
