@@ -1,0 +1,3 @@
+[submodule "3rd/utils"]
+	path = 3rd/utils
+	url = https://github.com/OYCN/jetson-utils.git
