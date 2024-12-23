@@ -2,4 +2,8 @@ cmake-build-*
 .idea
 *.engine
 *.dat
-
+*.pt
+tc
+*.lock
+*.jpg
+*.onnx
