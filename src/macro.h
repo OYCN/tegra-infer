@@ -16,4 +16,8 @@
     }\
   }
 
+#define CUDA_LOOP_2D(tx, ty, w, h) \
+    for (int ty = blockIdx.y * blockDim.y + threadIdx.y; ty < h; ty += blockDim.y * gridDim.y)\
+    for (int tx = blockIdx.x * blockDim.x + threadIdx.x; tx < w; tx += blockDim.x * gridDim.x)
+
 #endif //MACRO_H

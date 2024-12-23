@@ -14,6 +14,7 @@ file(GLOB jetsonUtilitySources
         "${UTILS_DIR}/video/*.cpp"
 )
 add_library(jetson-utils ${jetsonUtilitySources})
+target_compile_definitions(jetson-utils PUBLIC -DENABLE_NVMM)
 target_link_libraries(jetson-utils PUBLIC
         CUDA::cudart
         CUDA::nppicc
@@ -31,7 +32,8 @@ target_link_libraries(jetson-utils PUBLIC
         gobject-2.0
         glib-2.0
         X11
-#        nvbuf_utils
+        nvbufsurface
+        nvbufsurftransform
 )
 target_link_directories(jetson-utils PUBLIC
         /usr/lib/aarch64-linux-gnu/tegra
@@ -61,11 +63,3 @@ add_executable(camera-viewer
         "${UTILS_DIR}/camera/camera-viewer/camera-viewer.cpp"
 )
 target_link_libraries(camera-viewer PRIVATE jetson-utils)
-
-set(TMP_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
-set(BUILD_SHARED_LIBS OFF)
-set(BUILD_EXAMPLES OFF)
-set(WITH_GFLAGS OFF)
-set(WITH_TLS OFF)
-add_subdirectory(glog)
-set(BUILD_SHARED_LIBS ${TMP_BUILD_SHARED_LIBS})

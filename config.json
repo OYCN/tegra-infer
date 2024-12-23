@@ -1,0 +1,14 @@
+{
+  "sources": ["camera"],
+  "camera": {
+    "device": "csi://0",
+    "raw_w": 1280,
+    "raw_h": 720,
+    "raw_fps": 60,
+    "buffer_nb": 4
+  },
+  "image": {
+    "path": "bus.jpg"
+  },
+  "trt_engine": "fp32.fp32hwc.engine"
+}

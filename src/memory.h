@@ -6,6 +6,7 @@
 #define MEMORY_H
 
 #include <cstddef>
+#include <string>
 
 #define DELETE_COPY_AND_ASSIGN(cls) \
 cls(const cls&) = delete; \
@@ -22,10 +23,14 @@ enum class MemoryType {
 class IMemory {
   public:
     IMemory(size_t size, MemoryType type) : size_(size), type_(type) {}
-    virtual ~IMemory() {}
+    virtual ~IMemory() = default;
 
     MemoryType GetMemoryType() const { return type_; }
+    void* GetPtr() const { return ptr_; }
     size_t GetSize() const { return size_; }
+
+    void LoadFrom(const std::string& path);
+    void SaveTo(const std::string& path);
 
   protected:
     void* ptr_ = nullptr;

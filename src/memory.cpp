@@ -4,6 +4,22 @@
 
 #include "memory.h"
 #include "macro.h"
+#include "fs.h"
+
+void IMemory::LoadFrom(const std::string& path) {
+    auto buff = readFileToString(path);
+    CHECK_EQ(buff.size(), GetSize());
+    CUDA_CHECK(cudaMemcpy(GetPtr(), buff.data(), GetSize(), cudaMemcpyDefault));
+    CUDA_CHECK(cudaStreamSynchronize(nullptr));
+}
+
+void IMemory::SaveTo(const std::string& path) {
+    std::string buff;
+    buff.resize(GetSize());
+    CUDA_CHECK(cudaMemcpy(buff.data(), GetPtr(), GetSize(), cudaMemcpyDefault));
+    CUDA_CHECK(cudaStreamSynchronize(nullptr));
+    writeStringToFile(path, buff);
+}
 
 CudaMemory::CudaMemory(size_t size) : IMemory(size, MemoryType::kCuda) {
     if (size > 0) {
