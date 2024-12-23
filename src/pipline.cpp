@@ -12,6 +12,9 @@
 #include "3rd/utils/image/imageFormat.h"
 
 Pipline::Pipline(const nlohmann::json& j) {
+    // config
+    quiet_ = j["quiet"].get<bool>();
+
     // source
     auto sources = j["sources"].get<std::vector<std::string>>();
     int max_w = 0;
@@ -62,7 +65,9 @@ Pipline::Pipline(const nlohmann::json& j) {
 
 void Pipline::process() {
     // nvtxRangePushA("Pipline::process");
-    LOG(INFO) << "=== Pipline::process start ===";
+    if (!quiet_) {
+        LOG(INFO) << "=== Pipline::process start ===";
+    }
     auto all_start = std::chrono::high_resolution_clock::now();
 
     CUDA_CHECK(cudaEventRecord(camera_start_, stream_));
@@ -96,35 +101,40 @@ void Pipline::process() {
 
     auto all_stop = std::chrono::high_resolution_clock::now();
 
-    {
-        float ms = 0;
-        CUDA_CHECK(cudaEventElapsedTime(&ms, camera_start_, camera_stop_));
-        LOG(INFO) << "[GPU] Pipline/camera: " << ms << " ms";
+    if (!quiet_) {
+        {
+            LOG(INFO) << "final det nb: " << stage_.getResult().boxes.size();
+        }
+        {
+            float ms = 0;
+            CUDA_CHECK(cudaEventElapsedTime(&ms, camera_start_, camera_stop_));
+            LOG(INFO) << "[GPU] Pipline/camera: " << ms << " ms";
+        }
+        {
+            float ms = 0;
+            CUDA_CHECK(cudaEventElapsedTime(&ms, stage_process_start_, stage_process_stop_));
+            LOG(INFO) << "[GPU] Pipline/stage/gpu_process: " << ms << " ms";
+        }
+        {
+            auto ms = std::chrono::duration_cast<std::chrono::microseconds>(stage_reslut_stop - stage_reslut_start).count() / 1000;
+            LOG(INFO) << "[CPU] Pipline/stage/parse_result: " << ms << " ms";
+        }
+        {
+            float ms = 0;
+            CUDA_CHECK(cudaEventElapsedTime(&ms, stage_render_start_, stage_render_stop_));
+            LOG(INFO) << "[GPU] Pipline/stage/render: " << ms << " ms";
+        }
+        {
+            float ms = 0;
+            CUDA_CHECK(cudaEventElapsedTime(&ms, display_start_, display_stop_));
+            LOG(INFO) << "[GPU] Pipline/display: " << ms << " ms";
+        }
+        {
+            auto ms = std::chrono::duration_cast<std::chrono::microseconds>(all_stop - all_start).count() / 1000;
+            LOG(INFO) << "[CPU] Pipline: " << ms << " ms";
+        }
+        LOG(INFO) << "=== Pipline::process done ===";
     }
-    {
-        float ms = 0;
-        CUDA_CHECK(cudaEventElapsedTime(&ms, stage_process_start_, stage_process_stop_));
-        LOG(INFO) << "[GPU] Pipline/stage/gpu_process: " << ms << " ms";
-    }
-    {
-        auto ms = std::chrono::duration_cast<std::chrono::microseconds>(stage_reslut_stop - stage_reslut_start).count() / 1000;
-        LOG(INFO) << "[CPU] Pipline/stage/parse_result: " << ms << " ms";
-    }
-    {
-        float ms = 0;
-        CUDA_CHECK(cudaEventElapsedTime(&ms, stage_render_start_, stage_render_stop_));
-        LOG(INFO) << "[GPU] Pipline/stage/render: " << ms << " ms";
-    }
-    {
-        float ms = 0;
-        CUDA_CHECK(cudaEventElapsedTime(&ms, display_start_, display_stop_));
-        LOG(INFO) << "[GPU] Pipline/display: " << ms << " ms";
-    }
-    {
-        auto ms = std::chrono::duration_cast<std::chrono::microseconds>(all_stop - all_start).count() / 1000;
-        LOG(INFO) << "[CPU] Pipline: " << ms << " ms";
-    }
-    LOG(INFO) << "=== Pipline::process done ===";
     // nvtxRangePop();
 }
 

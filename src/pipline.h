@@ -56,6 +56,8 @@ private:
     cudaStream_t stream_;
     Stage stage_;
 
+    bool quiet_;
+
     cudaEvent_t camera_start_;
     cudaEvent_t camera_stop_;
     cudaEvent_t stage_process_start_;

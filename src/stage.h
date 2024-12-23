@@ -11,6 +11,8 @@
 #include "typedef.h"
 #include "memory.h"
 
+#include <chrono>
+
 #include "3rd/nlohmann/json.hpp"
 #include "3rd/utils/cuda/cudaFont.h"
 
@@ -48,6 +50,8 @@ private:
 
     std::vector<std::string> type_map_;
     std::unique_ptr<cudaFont> font_;
+
+    std::chrono::time_point<std::chrono::system_clock> last_ts_;
 };
 
 #endif //STAGE_H

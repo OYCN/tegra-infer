@@ -71,7 +71,7 @@ void Stage::init(const nlohmann::json& j) {
     for (auto v : output_shape) {
         bytes *= v;
     }
-    netout_buffer_ = std::make_unique<MappedMemory>(bytes);
+    netout_buffer_ = std::make_unique<CudaMemory>(bytes);
     infer_->bind(outputs.at(0), netout_buffer_->GetPtr());
     infer_->enableCudaGraph();
 
@@ -90,6 +90,8 @@ void Stage::init(const nlohmann::json& j) {
     decoder_param.tensor = reinterpret_cast<float*>(netout_buffer_->GetPtr());
     decoder_param.valid_nb_ptr = reinterpret_cast<int32_t*>(decoder_box_nb_d_buffer_->GetPtr());
     decoder_param.boxes = reinterpret_cast<Box*>(decoder_boxes_buffer_->GetPtr());
+
+    last_ts_ = std::chrono::high_resolution_clock::now();
 }
 
 void Stage::gpuProcess(const Frame& img, cudaStream_t stream) {
@@ -223,10 +225,8 @@ void categoryNms(const Box* ptr, int box_nb, float iou_threshold, std::vector<Bo
 void Stage::parseResults() {
     nvtxRangePushA("Stage::parseResults");
     int32_t nb = *reinterpret_cast<int32_t*>(decoder_box_nb_h_buffer_->GetPtr());
-    LOG(INFO) << "raw det nb: " << nb;
     const Box* boxes = reinterpret_cast<const Box*>(decoder_boxes_buffer_->GetPtr());
     categoryNms(boxes, nb, nms_thr_, result_.boxes);
-    LOG(INFO) << "final det nb: " << result_.boxes.size();
     nvtxRangePop();
 }
 
@@ -255,6 +255,16 @@ Frame Stage::genRenderImage(cudaStream_t stream, bool mock) {
             2, stream
         ));
     }
+    auto now_ts = std::chrono::high_resolution_clock::now();
+    auto fps = 1e6 / std::chrono::duration_cast<std::chrono::microseconds>(now_ts - last_ts_).count();
+    std::string fps_str = "FPS: " + std::to_string(fps);
+    CHECK(font_->OverlayText(
+        raw_img_.ptr, raw_img_.format, raw_img_.w, raw_img_.h,
+        fps_str.c_str(), 2, 2,
+        {0, 255, 0, 255}, {0, 0, 0, 0},
+        2, stream
+    ));
+    last_ts_ = now_ts;
     nvtxRangePop();
     return raw_img_;
 }
