@@ -84,7 +84,7 @@ struct DecoderParam {
     float scale;
     int len;
     int cls;
-    float score_thr = 0.25;
+    float score_thr;
 };
 
 struct Result {

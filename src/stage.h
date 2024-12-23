@@ -12,6 +12,7 @@
 #include "memory.h"
 
 #include "3rd/nlohmann/json.hpp"
+#include "3rd/utils/cuda/cudaFont.h"
 
 class Stage {
 public:
@@ -42,8 +43,11 @@ private:
     float scale_ = 1;
     uint32_t pad_t = 0;
     uint32_t pad_l = 0;
-    float nms_thr_ = 0.7;
+    float nms_thr_ = 0;
     Result result_;
+
+    std::vector<std::string> type_map_;
+    std::unique_ptr<cudaFont> font_;
 };
 
 #endif //STAGE_H

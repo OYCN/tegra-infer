@@ -15,7 +15,7 @@ __global__ void decoder_kernel(DecoderParam param) {
         for (int c = 4; c < param.cls; c++) {
             float s = param.tensor[c * param.len + tid];
             if (s > score) {
-                cls = c;
+                cls = c - 4;
                 score = s;
             }
         }

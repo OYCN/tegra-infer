@@ -16,6 +16,13 @@
 #include "nvtx3/nvToolsExt.h"
 
 void Stage::init(const nlohmann::json& j) {
+    type_map_ = j["type_map"].get<std::vector<std::string>>();
+
+    font_.reset(cudaFont::Create());
+
+    nms_thr_ = j["nms_thr"].get<float>();
+    decoder_param.score_thr = j["score_thr"].get<float>();
+
     auto engine_path = j["trt_engine"].get<std::string>();
     infer_ = TrtModels::getInstance().load(engine_path);
 
@@ -219,6 +226,7 @@ void Stage::parseResults() {
     LOG(INFO) << "raw det nb: " << nb;
     const Box* boxes = reinterpret_cast<const Box*>(decoder_boxes_buffer_->GetPtr());
     categoryNms(boxes, nb, nms_thr_, result_.boxes);
+    LOG(INFO) << "final det nb: " << result_.boxes.size();
     nvtxRangePop();
 }
 
@@ -227,13 +235,24 @@ Frame Stage::genRenderImage(cudaStream_t stream, bool mock) {
         return raw_img_;
     }
     nvtxRangePushA("Stage::genRenderImage");
-    LOG(INFO) << "final det nb: " << result_.boxes.size();
     for (auto& box : result_.boxes) {
+        CHECK_LT(box.type, type_map_.size());
+        auto type = type_map_.at(box.type);
+        // LOG(INFO) << "=====";
+        // LOG(INFO) << type << ": " << box.score;
+        // LOG(INFO) << "=====";
         CUDA_CHECK(cudaDrawRect(
             raw_img_.ptr, raw_img_.w, raw_img_.h, raw_img_.format,
             box.x0, box.y0, box.x1, box.y1,
             {0, 0, 0, 0},
             {0, 255, 0, 255}, 1.f, stream
+        ));
+        std::string msg_str = type + ": " + std::to_string(box.score);
+        CHECK(font_->OverlayText(
+            raw_img_.ptr, raw_img_.format, raw_img_.w, raw_img_.h,
+            msg_str.c_str(), box.x0 + 2, box.y0 + 2,
+            {0, 255, 0, 255}, {0, 0, 0, 0},
+            2, stream
         ));
     }
     nvtxRangePop();

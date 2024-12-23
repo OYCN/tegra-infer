@@ -42,9 +42,11 @@ Pipline::Pipline(const nlohmann::json& j) {
     stage_.init(j);
 
     // display
-    LOG(INFO) << "display w: " << max_w;
-    LOG(INFO) << "display h: " << max_h;
-    display_.reset(glDisplay::Create("display", max_w, max_h));
+    if (j["display"].get<bool>()) {
+        LOG(INFO) << "display w: " << max_w;
+        LOG(INFO) << "display h: " << max_h;
+        display_.reset(glDisplay::Create("display", max_w, max_h));
+    }
 
     // other
     CUDA_CHECK(cudaStreamCreate(&stream_));
@@ -79,11 +81,16 @@ void Pipline::process() {
     auto stage_reslut_stop = std::chrono::high_resolution_clock::now();
 
     CUDA_CHECK(cudaEventRecord(stage_render_start_, stream_));
-    auto display_frame = stage_.genRenderImage(stream_);
+    Frame display_frame;
+    if (display_) {
+        display_frame = stage_.genRenderImage(stream_);
+    }
     CUDA_CHECK(cudaEventRecord(stage_render_stop_, stream_));
 
     CUDA_CHECK(cudaEventRecord(display_start_, stream_));
-    display(display_frame, stream_);
+    if (display_) {
+        display(display_frame, stream_);
+    }
     CUDA_CHECK(cudaEventRecord(display_stop_, stream_));
     CUDA_CHECK(cudaStreamSynchronize(stream_));
 
