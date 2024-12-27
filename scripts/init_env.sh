@@ -4,6 +4,7 @@ set -e
 
 sudo apt-get update
 sudo apt-get install -y \
+        ninja-build \
         libgoogle-glog-dev \
         v4l-utils \
      		dialog \
