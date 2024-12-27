@@ -44,15 +44,15 @@ Run
 ./build/src/main
 ```
 
-## helper
+## Helper
 
-### query all camera
+### Query all camera
 
 ```bash
 v4l2-ctl --list-devices
 ```
 
-### query specific device
+### Query specific device
 
 ```bash
 # example for <device>: `/dev/video0`
